@@ -38,7 +38,7 @@ class IRCCommandHandler:
             self.pm = pm
             return getattr(self, "cmd_" + pm.get_cmd())(pm)
         except AttributeError:
-            return "no such command"
+            self.msg_channel("no such command")
 
     def msg_channel(self, msg):
         self.irc.msg(self.pm.channel, msg)
@@ -49,11 +49,19 @@ class IRCCommandHandler:
     def cmd_rand(self, pm):
         self.msg_channel("random number: 5")
 
+        
     
 
 class IRCBot(irc.IRCClient):
     def __init__(self):
         self.handle_command = IRCCommandHandler(self)
+
+    def _get_nickname(self):
+        return self.factory.nickname
+    nickname = property(_get_nickname)
+
+    def signedOn(self):
+        self.join(self.factory.channel)
 
     def privmsg(self, user, channel, msg):
         pm = IRCMsg(user, channel, msg)
