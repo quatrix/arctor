@@ -6,7 +6,8 @@ class IRCMsgType:
     regular = 2
 
 class IRCConstants:
-    command_delimiter = '!'
+    command_delimiter   = '!'
+    username_delimiter  = '!'
 
 class IRCMsg:
     def __init__(self, user, channel, msg):
@@ -16,13 +17,13 @@ class IRCMsg:
         self.msg        = msg
 
     def short_username(self, user):
-        return user.split(IRCConstants.command_delimiter,1)[0]
+        return user.split(IRCConstants.username_delimiter,1)[0]
 
     def get_cmd(self):
         return self.msg[1:].split(' ',1)[0]
     
     def parse_msg(self, msg):
-        if msg[0] == '!':
+        if msg[0] == IRCConstants.command_delimiter:
             return IRCMsgType.command
         else:
             return IRCMsgType.regular
@@ -48,23 +49,11 @@ class IRCCommandHandler:
     def cmd_rand(self, pm):
         self.msg_channel("random number: 5")
 
-        
     
 
-class Arctor(irc.IRCClient):
+class IRCBot(irc.IRCClient):
     def __init__(self):
         self.handle_command = IRCCommandHandler(self)
-
-    def _get_nickname(self):
-        return self.factory.nickname
-    nickname = property(_get_nickname)
-
-    def signedOn(self):
-        self.join(self.factory.channel)
-        print "Signed on as %s." % (self.nickname,)
-
-    def joined(self, channel):
-        print "Joined %s." % (channel,)
 
     def privmsg(self, user, channel, msg):
         pm = IRCMsg(user, channel, msg)
@@ -72,8 +61,8 @@ class Arctor(irc.IRCClient):
         if pm.msg_type == IRCMsgType.command:
            self.handle_command.handle(pm)
 
-class ArctorFactory(protocol.ClientFactory):
-    protocol = Arctor
+class IRCBotFactory(protocol.ClientFactory):
+    protocol = IRCBot
 
     def __init__(self, channel, nickname):
         self.channel = channel
@@ -93,6 +82,6 @@ from twisted.internet import reactor
 if __name__ == "__main__":
     chan = sys.argv[1]
     nick = sys.argv[2]
-    reactor.connectTCP('irc.freenode.net', 6667, ArctorFactory('#' + chan, nick))
+    reactor.connectTCP('irc.freenode.net', 6667, IRCBotFactory('#' + chan, nick))
     reactor.run()
 
