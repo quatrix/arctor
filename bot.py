@@ -5,6 +5,9 @@ class IRCMsgType:
     command = 1
     regular = 2
 
+class IRCConstants:
+    command_delimiter = '!'
+
 class IRCMsg:
     def __init__(self, user, channel, msg):
         self.user       = self.short_username(user)
@@ -13,7 +16,7 @@ class IRCMsg:
         self.msg        = msg
 
     def short_username(self, user):
-        return user.split('!',1)[0]
+        return user.split(IRCConstants.command_delimiter,1)[0]
 
     def get_cmd(self):
         return self.msg[1:].split(' ',1)[0]
@@ -26,22 +29,32 @@ class IRCMsg:
 
 
 class IRCCommandHandler:
+    def __init__(self, irc):
+        self.irc = irc
+
     def handle(self, pm):
         try:
+            self.pm = pm
             return getattr(self, "cmd_" + pm.get_cmd())(pm)
         except AttributeError:
             return "no such command"
 
+    def msg_channel(self, msg):
+        self.irc.msg(self.pm.channel, msg)
+
     def cmd_echo(self, pm):
-        return pm.user + " said " + pm.msg
+        self.msg_channel(pm.user + " said " + pm.msg)
 
     def cmd_rand(self, pm):
-        return "random number: 5"
+        self.msg_channel("random number: 5")
 
         
     
 
 class Arctor(irc.IRCClient):
+    def __init__(self):
+        self.handle_command = IRCCommandHandler(self)
+
     def _get_nickname(self):
         return self.factory.nickname
     nickname = property(_get_nickname)
@@ -57,10 +70,7 @@ class Arctor(irc.IRCClient):
         pm = IRCMsg(user, channel, msg)
 
         if pm.msg_type == IRCMsgType.command:
-            response = self.factory.handle_command.handle(pm)
-    
-            if response:
-                self.msg(channel, response)
+           self.handle_command.handle(pm)
 
 class ArctorFactory(protocol.ClientFactory):
     protocol = Arctor
@@ -68,7 +78,6 @@ class ArctorFactory(protocol.ClientFactory):
     def __init__(self, channel, nickname):
         self.channel = channel
         self.nickname = nickname
-        self.handle_command = IRCCommandHandler()
 
     def clientConnectionLost(self, connector, reason):
         print "Lost connection (%s), reconnecting." % (reason,)
