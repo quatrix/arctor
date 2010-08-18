@@ -18,13 +18,16 @@ class IRCCommandDispacher(object):
         self.irc = irc
 
     def handle(self, pm):
-        try:
-            pm.__class__ = IRCCmd
-            self.pm = pm
+        pm.__class__    = IRCCmd
+        self.pm         = pm
 
-            return getattr(self, "cmd_" + pm.get_cmd())(pm)
+        try:
+            cmd_ptr = getattr(self, "cmd_" + pm.get_cmd())
         except AttributeError:
             self.send_reply("no such command")
+            return 
+
+        return cmd_ptr(pm)
 
     def send_reply(self, msg):
         if self.pm.is_private:
@@ -60,10 +63,8 @@ class IRCCommandHandler(IRCCommandDispacher):
         self.send_reply("%s is type: %d" % (pm.user.nick, pm.user.user_type))
             
     def cmd_log_start(self, pm):
-        log_name = pm.get_cmd_args()[0]
-
         try:
-            self.irc.xml_logger.start_logger(pm.channel, log_name)
+            self.irc.xml_logger.start_logger(pm.channel, pm.user)
             self.send_reply("logging of %s started" % pm.channel)
         except IRCXMLLoggerException as e:
             self.send_reply(e.value)
