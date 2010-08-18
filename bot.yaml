@@ -1,0 +1,9 @@
+nickname:   evilpita
+server:     irc.freenode.org
+port:       6667
+channels:   [quatrix, quatrix2]
+logdir:     /tmp/irclogs/
+auth:
+    quatrix: 
+        password:   quatrixpass
+        type:       0x4 
