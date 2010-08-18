@@ -6,7 +6,7 @@ from irc_userbuilder    import IRCUserBuilder
 from irc_commandhandler import IRCCommandHandler
 from irc_msgparser      import IRCMsgParser
 from irc_constants      import IRCConstants
-from irc_logger         import IRCXMLLogger, IRCXMLLoggerException
+from irc_xmllogger      import IRCXMLLogger, IRCXMLLoggerException
 
 
 class IRCBot(irc.IRCClient):

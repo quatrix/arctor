@@ -23,6 +23,9 @@ class IRCUserBuilder(object):
         self.irc    = irc
         self.users  = {}
 
+    def bot(self):
+        return IRCUser(self, self.irc.nickname, "localhost")
+
     def get_user(self, user):
         nick        = self.short_username(user)
         hostname    = self.hostname(user)

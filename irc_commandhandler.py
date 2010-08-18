@@ -1,6 +1,6 @@
-from irc_msgparser import IRCMsg
-from irc_userbuilder import IRCUserType
-from irc_logger         import IRCXMLLogger, IRCXMLLoggerException
+from irc_msgparser      import IRCMsg
+from irc_userbuilder    import IRCUserType
+from irc_xmllogger      import IRCXMLLogger, IRCXMLLoggerException
 
 class IRCCmd(IRCMsg):
     def get_cmd(self):
@@ -34,6 +34,7 @@ class IRCCommandDispacher(object):
             self.irc.msg(self.pm.user.nick, msg)
         else:
             self.irc.msg(self.pm.channel, msg)
+            self.irc.xml_logger.log(self.irc.user_builder.bot(), self.pm.channel, msg)
 
     def user_type_above(self, user_type):
         if self.pm.user.user_type >= user_type:
@@ -64,14 +65,14 @@ class IRCCommandHandler(IRCCommandDispacher):
             
     def cmd_log_start(self, pm):
         try:
-            self.irc.xml_logger.start_logger(pm.channel, pm.user)
+            self.irc.xml_logger.log_start(pm.channel, pm.user)
             self.send_reply("logging of %s started" % pm.channel)
         except IRCXMLLoggerException as e:
             self.send_reply(e.value)
 
     def cmd_log_stop(self, pm):
         try:
-            self.irc.xml_logger.stop_logger(pm.channel)
+            self.irc.xml_logger.log_stop(pm.channel)
             self.send_reply("logging of %s stopped" % pm.channel)
         except IRCXMLLoggerException as e:
             self.send_reply(e.value)
